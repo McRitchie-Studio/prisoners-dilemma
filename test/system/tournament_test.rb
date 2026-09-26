@@ -17,7 +17,7 @@ class TournamentTest < ApplicationSystemTestCase
     assert_equal [ "Always Defect", "Grudger", "Random", "Tit for Tat", "Your Fighter" ].sort, leaderboard_names.sort
     assert_selector "[data-status]", text: /wins with|tie for first/
     assert_selector "[data-summary]", text: "10 matches · 200 rounds each · seed 2014"
-    within(leaderboard_row("Your Fighter")) { assert_selector ".tag", text: "yours" }
+    within(leaderboard_row("Your Fighter")) { assert_selector ".tag", text: /yours/i }
 
     # 5 strategies: a 5 x 5 grid with 20 playable cells.
     assert_selector "[data-grid] .grid__cell", count: 20
@@ -67,7 +67,7 @@ class TournamentTest < ApplicationSystemTestCase
     check "entrant-pavlov"
     assert_selector "[data-leaderboard] tbody tr", count: 6
 
-    find("#custom-enabled", visible: :all).uncheck
+    uncheck "custom-enabled", allow_label_click: true
     %w[tit_for_tat always_defect grudger pavlov].each { |key| uncheck "entrant-#{key}" }
     assert_selector "[data-error]", text: "Choose at least two strategies"
     assert_no_selector "[data-leaderboard]", visible: true
