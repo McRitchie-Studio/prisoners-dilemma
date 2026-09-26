@@ -1,24 +1,22 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <title><%= content_for(:title) || "Prisoners Dilemma" %></title>
+    <title><%= content_for(:title) || "Prisoner's Dilemma Tournament" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="application-name" content="Prisoners Dilemma">
-    <meta name="mobile-web-app-capable" content="yes">
-    <%= csrf_meta_tags %>
+    <meta name="description" content="Pick or write a strategy, pit it against Tit for Tat, Always Defect, Grudger and Random over repeated rounds, and read the leaderboard. Runs in your browser.">
+    <meta name="color-scheme" content="light dark">
+    <meta name="application-name" content="Prisoner's Dilemma">
+    <meta property="og:title" content="Prisoner's Dilemma Tournament">
+    <meta property="og:description" content="Pick or write a strategy and run an iterated prisoner's dilemma tournament in your browser.">
+    <meta property="og:type" content="website">
     <%= csp_meta_tag %>
 
     <%= yield :head %>
-
-    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
-    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
 
     <link rel="icon" href="/icon.png" type="image/png">
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
 
-    <%# Includes all stylesheet files in app/assets/stylesheets %>
     <%= stylesheet_link_tag :app %>
     <%= javascript_importmap_tags %>
   </head>

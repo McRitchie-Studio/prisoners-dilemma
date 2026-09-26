@@ -35,5 +35,9 @@ module PrisonersDilemma
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
+
+    # The tournament runs in the browser and there is nothing to sign in to,
+    # so the app keeps no session and sets no cookie.
+    config.session_store :disabled
   end
 end
