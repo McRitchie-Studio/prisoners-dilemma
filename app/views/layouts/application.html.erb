@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title><%= content_for(:title) || "Prisoner's Dilemma Tournament" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="description" content="Pick or write a strategy, pit it against Tit for Tat, Always Defect, Grudger and Random over repeated rounds, and read the leaderboard. Runs in your browser.">
+    <meta name="color-scheme" content="light dark">
+    <meta name="application-name" content="Prisoner's Dilemma">
+    <meta property="og:title" content="Prisoner's Dilemma Tournament">
+    <meta property="og:description" content="Pick or write a strategy and run an iterated prisoner's dilemma tournament in your browser.">
+    <meta property="og:type" content="website">
+    <%= csp_meta_tag %>
+
+    <%= yield :head %>
+
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <%= stylesheet_link_tag :app %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body>
+    <%= yield %>
+  </body>
+</html>

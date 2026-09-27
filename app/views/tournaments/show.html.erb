@@ -1,0 +1,186 @@
+<header class="hero">
+  <p class="eyebrow">The iterated prisoner's dilemma</p>
+  <h1>Prisoner's Dilemma Tournament</h1>
+  <p class="lede">
+    Two players, one choice each round: <span class="move-word move-word--c">cooperate</span>
+    or <span class="move-word move-word--d">defect</span>. Defecting always pays more in
+    a single round, yet players who cooperate can both do better over many. Pick a field,
+    write your own fighter, and see who comes out ahead.
+  </p>
+</header>
+
+<main class="layout" data-tournament>
+  <form class="setup" data-tournament-form aria-label="Tournament setup">
+    <section class="panel" aria-labelledby="entrants-heading">
+      <h2 id="entrants-heading" class="panel__title">The field</h2>
+      <p class="panel__hint">Every strategy plays every other one. Choose at least two.</p>
+      <ul class="entrants">
+        <% @strategies.each do |strategy| %>
+          <li>
+            <label class="entrant" for="entrant-<%= strategy.key %>">
+              <%= check_box_tag "entrants[]", strategy.key, strategy.classic?,
+                    id: "entrant-#{strategy.key}", class: "entrant__check", data: { entrant: strategy.key } %>
+              <span class="entrant__body">
+                <span class="entrant__name"><%= strategy.name %></span>
+                <span class="entrant__blurb"><%= strategy.blurb %></span>
+              </span>
+            </label>
+          </li>
+        <% end %>
+      </ul>
+    </section>
+
+    <section class="panel panel--fighter" aria-labelledby="fighter-heading">
+      <div class="panel__head">
+        <h2 id="fighter-heading" class="panel__title">Your fighter</h2>
+        <label class="switch" for="custom-enabled">
+          <%= check_box_tag "custom_enabled", "1", true, id: "custom-enabled", class: "switch__input", data: { custom_enabled: true } %>
+          <span class="switch__track" aria-hidden="true"></span>
+          <span class="switch__label">Enter it</span>
+        </label>
+      </div>
+      <p class="panel__hint">
+        Write a strategy as rules: a first move, then an answer to each way the last round can go.
+      </p>
+
+      <div class="field">
+        <label class="field__label" for="custom-name">Name</label>
+        <%= text_field_tag "custom_name", "Your Fighter", id: "custom-name", maxlength: 40,
+              class: "input", autocomplete: "off", spellcheck: false, data: { custom_name: true } %>
+      </div>
+
+      <div class="rules" data-custom-rules>
+        <% TournamentsController::DEFAULT_RULES.each do |rule, move| %>
+          <%= move_choice(rule, move) %>
+        <% end %>
+      </div>
+
+      <div class="presets" role="group" aria-label="Start from a preset">
+        <span class="presets__label">Start from</span>
+        <button type="button" class="chip" data-preset="tit_for_tat">Tit for Tat</button>
+        <button type="button" class="chip" data-preset="pavlov">Pavlov</button>
+        <button type="button" class="chip" data-preset="always_cooperate">Always Cooperate</button>
+        <button type="button" class="chip" data-preset="always_defect">Always Defect</button>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="rules-heading">
+      <h2 id="rules-heading" class="panel__title">The rules</h2>
+
+      <div class="field">
+        <label class="field__label" for="rounds">Rounds per match</label>
+        <div class="range-row">
+          <input type="range" id="rounds-range" min="1" max="500" value="<%= TournamentsController::DEFAULT_ROUNDS %>"
+                 aria-label="Rounds per match slider" data-rounds-range>
+          <%= number_field_tag "rounds", TournamentsController::DEFAULT_ROUNDS, id: "rounds",
+                min: 1, max: 1000, step: 1, class: "input input--number", data: { rounds: true } %>
+        </div>
+      </div>
+
+      <fieldset class="field payoff">
+        <legend class="field__label">Points per round</legend>
+        <div class="payoff__grid">
+          <% { "R" => "Both cooperate", "T" => "You defect, they cooperate", "P" => "Both defect", "S" => "You cooperate, they defect" }.each do |key, label| %>
+            <label class="payoff__cell" for="payoff-<%= key %>">
+              <span class="payoff__label"><%= label %> <abbr title="<%= { "T" => "Temptation", "R" => "Reward", "P" => "Punishment", "S" => "Sucker's payoff" }[key] %>">(<%= key %>)</abbr></span>
+              <%= number_field_tag "payoff[#{key}]", TournamentsController::DEFAULT_PAYOFF[key],
+                    id: "payoff-#{key}", step: 1, min: -99, max: 99, class: "input input--number", data: { payoff: key } %>
+            </label>
+          <% end %>
+        </div>
+        <p class="warning" data-payoff-warning hidden></p>
+      </fieldset>
+
+      <div class="field">
+        <label class="field__label" for="seed">Random seed</label>
+        <div class="range-row">
+          <%= number_field_tag "seed", TournamentsController::DEFAULT_SEED, id: "seed", min: 1, max: 999_999, step: 1,
+                class: "input input--number input--seed", data: { seed: true } %>
+          <button type="button" class="button button--ghost" data-new-seed>New seed</button>
+        </div>
+        <p class="panel__hint">The same seed replays the same coin flips for Random.</p>
+      </div>
+    </section>
+
+    <button type="submit" class="button button--primary button--run" data-run>Run tournament</button>
+  </form>
+
+  <section class="results" aria-labelledby="results-heading" data-results>
+    <h2 id="results-heading" class="visually-hidden">Results</h2>
+    <p class="status" role="status" aria-live="polite" data-status>
+      <noscript>The tournament runs in your browser. Turn on JavaScript to play it.</noscript>
+    </p>
+    <p class="error" role="alert" data-error hidden></p>
+
+    <div class="panel panel--results" data-results-body hidden>
+      <div class="panel__head">
+        <h3 class="panel__title">Leaderboard</h3>
+        <span class="panel__meta" data-summary></span>
+      </div>
+      <div class="table-wrap">
+        <table class="table leaderboard" data-leaderboard>
+          <thead>
+            <tr>
+              <th scope="col" class="num">#</th>
+              <th scope="col">Strategy</th>
+              <th scope="col" class="num">Points</th>
+              <th scope="col" class="num">Per round</th>
+              <th scope="col" class="num" title="Matches won, tied, lost">W-T-L</th>
+              <th scope="col">Cooperates</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel panel--results" data-results-body hidden>
+      <div class="panel__head">
+        <h3 class="panel__title">Head to head</h3>
+        <span class="panel__meta">Row's points against column. Pick a cell to replay it.</span>
+      </div>
+      <div class="table-wrap">
+        <table class="table grid" data-grid></table>
+      </div>
+    </div>
+
+    <div class="panel panel--results" data-results-body hidden>
+      <div class="panel__head">
+        <h3 class="panel__title">Round by round</h3>
+      </div>
+      <div class="match-pick">
+        <label class="field__label" for="match-a">Match</label>
+        <select id="match-a" class="input" data-match-a></select>
+        <span class="match-pick__vs">vs</span>
+        <select id="match-b" class="input" aria-label="Opponent" data-match-b></select>
+      </div>
+      <p class="match-score" data-match-score></p>
+      <div class="strip" data-strip aria-hidden="true">
+        <div class="strip__row" data-strip-a></div>
+        <div class="strip__row" data-strip-b></div>
+      </div>
+      <div class="table-wrap table-wrap--rounds">
+        <table class="table rounds" data-rounds-table>
+          <thead>
+            <tr>
+              <th scope="col" class="num">Round</th>
+              <th scope="col" data-col-a>A</th>
+              <th scope="col" data-col-b>B</th>
+              <th scope="col" class="num">Points</th>
+              <th scope="col" class="num">Running score</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <p>
+    A rebuild of <a href="https://github.com/amcritchie/prisoners-dilemma-tournament">Alex McRitchie's 2014 app</a>.
+    Built with <a href="https://mcritchie.studio/build">McRitchie Studio</a>.
+    Everything runs in your browser: no account, no cookies.
+  </p>
+</footer>
