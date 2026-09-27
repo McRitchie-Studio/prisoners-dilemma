@@ -100,4 +100,15 @@ class TournamentTest < ApplicationSystemTestCase
     assert_selector "[data-payoff-warning]", text: "2R should beat T + S"
     assert_selector "[data-leaderboard] tbody tr", count: 5
   end
+
+  test "a 1,000-round match fits a phone without scrolling the page sideways" do
+    page.driver.browser.manage.window.resize_to(375, 800) # headless Chrome floors this near 500
+    visit root_path(rounds: 1000)
+
+    assert_selector "[data-strip-a] .pip", count: 1000, visible: :all
+    width = evaluate_script("[document.documentElement.scrollWidth, document.documentElement.clientWidth]")
+    assert_operator width[0], :<=, width[1]
+  ensure
+    page.driver.browser.manage.window.resize_to(1400, 1000)
+  end
 end

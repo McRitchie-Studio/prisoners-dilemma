@@ -396,7 +396,9 @@ a { color: var(--accent); }
 .strip__row {
   display: grid;
   grid-template-columns: repeat(var(--rounds, 1), minmax(0, 1fr));
-  gap: 1px;
+  /* A fixed 1px gap sets a floor of rounds - 1 px, which pushed the page
+     sideways past ~350 rounds on a phone. A share of the width has no floor. */
+  gap: min(1px, 100% / var(--rounds, 1) / 2);
   height: 14px;
 }
 .pip { border-radius: 2px; }
