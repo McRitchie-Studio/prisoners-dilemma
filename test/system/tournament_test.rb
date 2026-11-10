@@ -85,7 +85,8 @@ class TournamentTest < ApplicationSystemTestCase
     first_score = find("[data-match-score]").text
 
     click_on "New seed"
-    assert_no_selector "[data-summary]", text: "seed 7"
+    # exact_text: a new seed can start with 7 (728025), and text: matches a substring.
+    assert_no_selector "[data-summary]", exact_text: "1 match · 25 rounds each · seed 7"
     assert_match(/seed=(?!7\b)\d+/, current_url)
 
     visit root_path(field: "tit_for_tat,random", rounds: 25, seed: 7, me: "off")
