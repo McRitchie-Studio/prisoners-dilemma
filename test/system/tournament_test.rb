@@ -85,7 +85,8 @@ class TournamentTest < ApplicationSystemTestCase
     first_score = find("[data-match-score]").text
 
     click_on "New seed"
-    assert_no_selector "[data-summary]", text: "seed 7"
+    # exact_text: a new seed can start with 7 (728025), and text: matches a substring.
+    assert_no_selector "[data-summary]", exact_text: "1 match · 25 rounds each · seed 7"
     assert_match(/seed=(?!7\b)\d+/, current_url)
 
     visit root_path(field: "tit_for_tat,random", rounds: 25, seed: 7, me: "off")
@@ -102,13 +103,20 @@ class TournamentTest < ApplicationSystemTestCase
   end
 
   test "a 1,000-round match fits a phone without scrolling the page sideways" do
-    page.driver.browser.manage.window.resize_to(375, 800) # headless Chrome floors this near 500
+    # Headless Chrome will not size its window under 500px, so a window
+    # resize to 375 gives a 500px page. DevTools emulation sets the viewport
+    # itself; the ensure clears it, because the driver outlives the test.
+    page.driver.browser.execute_cdp("Emulation.setDeviceMetricsOverride",
+                                    width: 375, height: 800, deviceScaleFactor: 1, mobile: true)
     visit root_path(rounds: 1000)
 
     assert_selector "[data-strip-a] .pip", count: 1000, visible: :all
+    # clientWidth, not innerWidth: under mobile emulation innerWidth grows to
+    # fit a page that overflows.
+    assert_equal 375, evaluate_script("document.documentElement.clientWidth"), "the phone viewport is 375px"
     width = evaluate_script("[document.documentElement.scrollWidth, document.documentElement.clientWidth]")
     assert_operator width[0], :<=, width[1]
   ensure
-    page.driver.browser.manage.window.resize_to(1400, 1000)
+    page.driver.browser.execute_cdp("Emulation.clearDeviceMetricsOverride")
   end
 end
